@@ -1,4 +1,5 @@
 import { CorrelationId, MoneyCents } from "../types";
+import { PROCESSOR } from "../constants";
 
 export interface PaymentInput {
   correlationId: CorrelationId;
@@ -9,7 +10,7 @@ export interface PaymentRecord {
   id: number;
   correlationId: CorrelationId;
   amountCents: MoneyCents;
-  processor: "default" | "fallback";
+  processor: typeof PROCESSOR.DEFAULT | typeof PROCESSOR.FALLBACK;
   requestedAt: Date;
 }
 

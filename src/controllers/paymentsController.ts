@@ -2,18 +2,19 @@ import { Router, Request, Response } from "express";
 import { defaultProcessPayment } from "../services/paymentService";
 import { getSummary, purgePayments } from "../repository/paymentRepository";
 import { makeAsyncQueue } from "../queue/queue";
+import { DEFAULTS, ROUTES, ENV } from "../constants";
 
-const paymentsQueue = makeAsyncQueue<{ correlationId: string; amount: number }>(50000);
+const paymentsQueue = makeAsyncQueue<{ correlationId: string; amount: number }>(DEFAULTS.QUEUE_MAX_SIZE);
 
 export const paymentsRouter = Router();
 
 export const registerPaymentRoutes = () => {
-  const defaultUrl = process.env.PAYMENT_PROCESSOR_URL_DEFAULT || "";
-  const fallbackUrl = process.env.PAYMENT_PROCESSOR_URL_FALLBACK || "";
+  const defaultUrl = process.env[ENV.PAYMENT_PROCESSOR_URL_DEFAULT] || "";
+  const fallbackUrl = process.env[ENV.PAYMENT_PROCESSOR_URL_FALLBACK] || "";
   
   const processPayment = defaultProcessPayment({ defaultUrl, fallbackUrl });
 
-  paymentsRouter.post("/payments", async (req: Request, res: Response) => {
+  paymentsRouter.post(ROUTES.PAYMENTS, async (req: Request, res: Response) => {
     const { correlationId, amount } = req.body || {};
   
     if (!correlationId || typeof correlationId !== "string") {
@@ -30,7 +31,7 @@ export const registerPaymentRoutes = () => {
     return res.status(202).send();
   });
 
-  paymentsRouter.get("/payments-summary", async (req: Request, res: Response) => {
+  paymentsRouter.get(ROUTES.PAYMENTS_SUMMARY, async (req: Request, res: Response) => {
     const { from, to } = req.query as { from?: string; to?: string };
     
     const summary = await getSummary(
@@ -41,15 +42,15 @@ export const registerPaymentRoutes = () => {
     return res.status(200).json(summary);
   });
 
-  paymentsRouter.post("/purge-payments", async (_req: Request, res: Response) => {
+  paymentsRouter.post(ROUTES.PURGE_PAYMENTS, async (_req: Request, res: Response) => {
     await purgePayments();
 
     return res.status(200).json({ status: "payments purged" });
   });
 
   // worker loop
-  const MAX_PARALLELISM = parseInt(process.env.MAX_PARALLELISM || "2", 10);
-  const MAX_ATTEMPTS = 5;
+  const MAX_PARALLELISM = parseInt(process.env[ENV.MAX_PARALLELISM] || String(DEFAULTS.MAX_PARALLELISM), 10);
+  const MAX_ATTEMPTS = DEFAULTS.MAX_ATTEMPTS;
 
   const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
@@ -70,7 +71,7 @@ export const registerPaymentRoutes = () => {
             return;
           }
 
-          const backoff = Math.min(1000 * Math.pow(2, attempts), 15000);
+          const backoff = Math.min(DEFAULTS.BACKOFF_BASE_MS * Math.pow(2, attempts), DEFAULTS.BACKOFF_CAP_MS);
 
           await delay(backoff);
 
@@ -78,7 +79,7 @@ export const registerPaymentRoutes = () => {
         });
       } catch (e) {
         console.error({ err: e }, `worker ${id} error`);
-        await delay(100);
+        await delay(DEFAULTS.WORKER_ERROR_SLEEP_MS);
       }
     }
   };

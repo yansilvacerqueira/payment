@@ -1,6 +1,7 @@
 import { QueueItem } from "../types";
+import { DEFAULTS } from "../constants";
 
-export const makeAsyncQueue = <T>(maxSize = 50000) => {
+export const makeAsyncQueue = <T>(maxSize = DEFAULTS.QUEUE_MAX_SIZE) => {
   let items: Array<QueueItem<T>> = [];
   let resolvers: Array<(value: QueueItem<T>) => void> = [];
 

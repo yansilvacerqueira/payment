@@ -1,9 +1,10 @@
 import { Pool } from "pg";
+import { ENV, TABLES } from "../constants";
 
 const {
   POSTGRES_HOST = "postgres",
   POSTGRES_PORT = "5432",
-  POSTGRES_DB = "payments",
+  POSTGRES_DB = TABLES.PAYMENTS,
   POSTGRES_USER = "postgres",
   POSTGRES_PASSWORD = "postgres",
 } = process.env;
@@ -23,7 +24,7 @@ export const initPostgres = async (): Promise<void> => {
   const client = await pgPool.connect();
   try {
     await client.query(`
-      create table if not exists payments (
+      create table if not exists ${TABLES.PAYMENTS} (
         id bigserial primary key,
         correlation_id text unique not null,
         amount numeric(18,2) not null,

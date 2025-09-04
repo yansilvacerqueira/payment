@@ -1,8 +1,9 @@
 import { request } from "undici";
 import { GatewaySelector } from "../types";
+import { EXTERNAL_ENDPOINTS, HTTP, PROCESSOR } from "../constants";
 
 export const simpleSelector: GatewaySelector = async ({ defaultUrl }) => {
-  return { url: defaultUrl, name: "default" };
+  return { url: defaultUrl, name: PROCESSOR.DEFAULT };
 };
 
 export const sendPayment = async (
@@ -20,13 +21,13 @@ export const sendPayment = async (
   });
 
   try {
-    const r = await request(`${dest}/payments`, {
+    const r = await request(`${dest}${EXTERNAL_ENDPOINTS.PAYMENTS}`, {
       method: "POST",
-      bodyTimeout: 10_000,
-      headersTimeout: 10_000,
+      bodyTimeout: HTTP.TIMEOUT_MS,
+      headersTimeout: HTTP.TIMEOUT_MS,
       headers: {
-        "Content-Type": "application/json",
-        Connection: "keep-alive",
+        [HTTP.HEADERS.CONTENT_TYPE]: HTTP.CONTENT_TYPES.JSON,
+        [HTTP.HEADERS.CONNECTION]: HTTP.CONNECTION.KEEP_ALIVE,
       },
       body,
     });
