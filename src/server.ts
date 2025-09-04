@@ -1,9 +1,12 @@
 import express,{ json } from "express";
+import cors from "cors";
 import { paymentsRouter, registerPaymentRoutes } from "./controllers/paymentsController";
 import { initPostgres } from "./infra/postgres";
 
 export const buildServer = async () => {
   const app = express();
+  
+  app.use(cors());
   app.use(json({ limit: "1mb" }));
   app.disable("x-powered-by");
 
