@@ -1,9 +1,5 @@
 import { request } from "undici";
-
-export type GatewaySelector = (args: {
-  defaultUrl: string;
-  fallbackUrl: string;
-}) => Promise<{ url: string; name: "default" | "fallback" }>;
+import { GatewaySelector } from "../types";
 
 export const simpleSelector: GatewaySelector = async ({ defaultUrl }) => {
   return { url: defaultUrl, name: "default" };

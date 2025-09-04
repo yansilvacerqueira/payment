@@ -1,4 +1,4 @@
-export type QueueItem<T> = T & { attempts?: number };
+import { QueueItem } from "../types";
 
 export const makeAsyncQueue = <T>(maxSize = 50000) => {
   let items: Array<QueueItem<T>> = [];

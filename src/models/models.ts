@@ -1,6 +1,4 @@
-export type CorrelationId = string;
-
-export type MoneyCents = number; // use integers representing cents
+import { CorrelationId, MoneyCents } from "../types";
 
 export interface PaymentInput {
   correlationId: CorrelationId;

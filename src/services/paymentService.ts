@@ -1,8 +1,7 @@
 import { insertPayment } from "../repository/paymentRepository";
 import { PaymentInput } from "../models/models";
-import { GatewaySelector, sendPayment, simpleSelector } from "./gatewayService";
-
-export type ProcessPaymentFn = (input: PaymentInput) => Promise<void>;
+import { sendPayment, simpleSelector } from "./gatewayService";
+import { GatewaySelector, ProcessPaymentFn } from "../types";
 
 export const makeProcessPayment = (
   selectGateway: GatewaySelector,
