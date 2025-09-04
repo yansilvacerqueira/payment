@@ -1,11 +1,11 @@
 import { pgPool } from "../infra/postgres";
-import { PaymentRecord, PaymentSummary } from "../models/models";
-import { TABLES } from "../constants";
+import { IPaymentRecord, IPaymentSummary } from "../models/models";
+import { PROCESSOR, TABLES } from "../constants";
 
 export const insertPayment = async (
   correlationId: string,
   amountCents: number,
-  processor: "default" | "fallback",
+  processor: typeof PROCESSOR.DEFAULT | typeof PROCESSOR.FALLBACK,
   requestedAt: Date
 ): Promise<void> => {
   await pgPool.query(
@@ -19,7 +19,7 @@ export const insertPayment = async (
 export const getSummary = async (
   from?: Date,
   to?: Date
-): Promise<PaymentSummary> => {
+): Promise<IPaymentSummary> => {
   const rows = await pgPool.query(
     `select processor,
             count(*) as total_requests,
@@ -31,13 +31,13 @@ export const getSummary = async (
     [from ? from.toISOString() : null, to ? to.toISOString() : null]
   );
 
-  const summary: PaymentSummary = {
+  const summary: IPaymentSummary = {
     default: { totalRequests: 0, totalAmountCents: 0 },
     fallback: { totalRequests: 0, totalAmountCents: 0 },
   };
 
   for (const r of rows.rows) {
-    const key = r.processor as "default" | "fallback";
+    const key = r.processor as typeof PROCESSOR.DEFAULT | typeof PROCESSOR.FALLBACK;
     summary[key].totalRequests = parseInt(r.total_requests, 10);
     summary[key].totalAmountCents = parseInt(r.total_amount_cents, 10);
   }
@@ -48,7 +48,7 @@ export const purgePayments = async (): Promise<void> => {
   await pgPool.query(`truncate table ${TABLES.PAYMENTS}`);
 };
 
-export const getPayment = async (correlationId: string): Promise<PaymentRecord> => {
+export const getPayment = async (correlationId: string): Promise<IPaymentRecord> => {
   const rows = await pgPool.query(
     `select * from ${TABLES.PAYMENTS} where correlation_id = $1`,
     [correlationId]
@@ -56,7 +56,7 @@ export const getPayment = async (correlationId: string): Promise<PaymentRecord> 
   return rows.rows[0];
 };
 
-export const updatePayment = async (correlationId: string, amountCents: number, processor: "default" | "fallback", requestedAt: Date): Promise<void> => {
+export const updatePayment = async (correlationId: string, amountCents: number, processor: typeof PROCESSOR.DEFAULT | typeof PROCESSOR.FALLBACK, requestedAt: Date): Promise<void> => {
   await pgPool.query(
     `update ${TABLES.PAYMENTS} set amount = $2::numeric / 100.0, processor = $3, requested_at = $4 where correlation_id = $1`,
     [correlationId, amountCents, processor, requestedAt.toISOString()]

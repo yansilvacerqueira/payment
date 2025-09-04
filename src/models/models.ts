@@ -1,12 +1,12 @@
 import { CorrelationId, MoneyCents } from "../types";
 import { PROCESSOR } from "../constants";
 
-export interface PaymentInput {
+export interface IPaymentInput {
   correlationId: CorrelationId;
   amountCents: MoneyCents;
 }
 
-export interface PaymentRecord {
+export interface IPaymentRecord {
   id: number;
   correlationId: CorrelationId;
   amountCents: MoneyCents;
@@ -14,7 +14,7 @@ export interface PaymentRecord {
   requestedAt: Date;
 }
 
-export interface PaymentSummary {
+export interface IPaymentSummary {
   default: { totalRequests: number; totalAmountCents: MoneyCents };
   fallback: { totalRequests: number; totalAmountCents: MoneyCents };
 }
